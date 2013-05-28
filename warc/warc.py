@@ -323,9 +323,6 @@ class WARCReader:
         
     def read_header(self, fileobj):
         version_line = fileobj.readline()
-        if not version_line:
-            return None
-            
         m = self.RE_VERSION.match(version_line)
         if not m:
             raise IOError("Bad version line: %r" % version_line)
@@ -358,6 +355,7 @@ class WARCReader:
             self.current_payload.read()
             self.expect(self.current_payload.fileobj, "\r\n")
             self.expect(self.current_payload.fileobj, "\r\n")
+            self.expect(self.current_payload.fileobj, "") # EOF
             self.current_payload = None
 
     def read_record(self):
@@ -371,8 +369,6 @@ class WARCReader:
             fileobj = self.fileobj
             
         header = self.read_header(fileobj)
-        if header is None:
-            return None
         
         self.current_payload = FilePart(fileobj, header.content_length)
         record = WARCRecord(header, self.current_payload, defaults=False)
